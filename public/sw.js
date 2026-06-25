@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hyrox-sim-v3';
+const CACHE_NAME = 'hyrox-sim-v4';
 const ASSETS = [
   '/',
   '/index.html',
@@ -7,6 +7,9 @@ const ASSETS = [
   '/js/timer.js',
   '/js/wod.js',
   '/js/history.js',
+  '/js/auth.js',
+  '/js/cardio.js',
+  '/js/settings.js',
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png'
