@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hyrox-sim-v2';
+const CACHE_NAME = 'hyrox-sim-v3';
 const ASSETS = [
   '/',
   '/index.html',

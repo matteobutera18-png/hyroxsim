@@ -17,19 +17,10 @@ const TRIAL_DAYS = 7;
 
 // Helmet: secure HTTP headers
 app.use(helmet({
+  contentSecurityPolicy: false,
   crossOriginResourcePolicy: false,
   crossOriginEmbedderPolicy: false,
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.jsdelivr.net", "https://*.stripe.com", "https://*.paypal.com"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
-      connectSrc: ["'self'", "https://cdn.jsdelivr.net", "https://api.stripe.com", "https://*.stripe.com", "https://*.paypal.com"],
-      frameSrc: ["'self'", "https://js.stripe.com", "https://hooks.stripe.com", "https://*.paypal.com"],
-      imgSrc: ["'self'", "data:", "blob:", "https:", "http:"],
-    }
-  }
+  crossOriginOpenerPolicy: false
 }));
 
 // Global rate limiter: max 200 requests per 15 minutes per IP
