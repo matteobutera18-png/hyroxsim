@@ -17,15 +17,17 @@ const TRIAL_DAYS = 7;
 
 // Helmet: secure HTTP headers
 app.use(helmet({
+  crossOriginResourcePolicy: false,
+  crossOriginEmbedderPolicy: false,
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", 'cdn.jsdelivr.net'],
-      styleSrc: ["'self'", "'unsafe-inline'", 'fonts.googleapis.com', 'cdn.jsdelivr.net'],
-      fontSrc: ["'self'", 'fonts.gstatic.com'],
-      connectSrc: ["'self'", 'api.stripe.com'],
-      frameSrc: ["'self'", 'js.stripe.com', 'hooks.stripe.com'],
-      imgSrc: ["'self'", 'data:', 'blob:'],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.jsdelivr.net", "https://*.stripe.com", "https://*.paypal.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+      connectSrc: ["'self'", "https://cdn.jsdelivr.net", "https://api.stripe.com", "https://*.stripe.com", "https://*.paypal.com"],
+      frameSrc: ["'self'", "https://js.stripe.com", "https://hooks.stripe.com", "https://*.paypal.com"],
+      imgSrc: ["'self'", "data:", "blob:", "https:", "http:"],
     }
   }
 }));
