@@ -1,0 +1,47 @@
+[
+  {
+    "id": "wod-pbj",
+    "name": "P'B & J (Power, Burpees & Jumps)",
+    "type": "For Time",
+    "description": "Un ottimo condizionamento che unisce corsa, burpees a salto in lungo e wall balls. Mantieni un ritmo costante sulle corse e spingi nelle stazioni.",
+    "workout": "4 Rounds For Time:\n- 400m Run\n- 15 Burpee Broad Jumps\n- 400m Run\n- 20 Wall Balls",
+    "difficulty": "Intermedio",
+    "target": "Motore aerobico e forza resistente delle gambe"
+  },
+  {
+    "id": "wod-sled-engine",
+    "name": "Sled & Sandbag Engine",
+    "type": "EMOM",
+    "description": "Lavoro ad intervalli incentrato sulla spinta dello sled e sugli affondi con sandbag. Cerca di completare il lavoro di ogni minuto in circa 40-45 secondi per avere il giusto recupero.",
+    "workout": "EMOM 20 Minuti (5 giri):\n- Minuto 1: 15 Calorie Row (o 200m Run)\n- Minuto 2: 4 Sled Push (10m ciascuno)\n- Minuto 3: 15 Sandbag Lunges (Affondi)\n- Minuto 4: Recupero Attivo (Plank o Rest)",
+    "difficulty": "Avanzato",
+    "target": "Forza esplosiva e capacità di recupero sotto sforzo"
+  },
+  {
+    "id": "wod-hyrox-sim-short",
+    "name": "Hyrox Sim (Short MetCon)",
+    "type": "For Time",
+    "description": "Una simulazione ridotta per testare la transizione tra la corsa e le stazioni tipiche di Hyrox.",
+    "workout": "For Time:\n- 1000m Run\n- 1000m SkiErg\n- 500m Row\n- 100m Farmers Carry\n- 50 Wall Balls",
+    "difficulty": "Intermedio",
+    "target": "Simulazione ritmo gara su distanza ridotta"
+  },
+  {
+    "id": "wod-aerobic-power",
+    "name": "Aerobic Power EMOM",
+    "type": "EMOM",
+    "description": "Lavoro strutturato per migliorare la potenza aerobica senza accumulare eccessivo acido lattico precoce.",
+    "workout": "EMOM 24 Minuti (6 giri):\n- Minuto 1: 15 Calorie SkiErg\n- Minuto 2: 12 Burpee Broad Jumps\n- Minuto 3: 20 Goblet Squats (Kettlebell/Dumbbell)\n- Minuto 4: 15 Calorie Row (o 200m Run)",
+    "difficulty": "Intermedio",
+    "target": "Soglia anaerobica ed efficienza nei movimenti"
+  },
+  {
+    "id": "wod-roxzone-burner",
+    "name": "Roxzone Burner",
+    "type": "For Time",
+    "description": "Questo WOD allena la transizione mentale e fisica (la Roxzone) riducendo progressivamente la distanza di corsa ma mantenendo alta l'intensità delle stazioni.",
+    "workout": "For Time:\n- 1000m Run\n- 50 Wall Balls\n- 800m Run\n- 40 Sandbag Lunges\n- 600m Run\n- 30 Burpee Broad Jumps\n- 400m Run\n- 20 Kettlebell Farmers Carry (100m)",
+    "difficulty": "Avanzato",
+    "target": "Resistenza mentale e gestione del passo di corsa stanco"
+  }
+]

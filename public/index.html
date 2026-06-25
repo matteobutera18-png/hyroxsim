@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>HYROX Companion - Mobile-First Workout Tracker</title>
+  <!-- PWA Manifest & Meta -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#080808">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+  
+  <!-- Tailwind CSS v4.0 Play CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  
+  <!-- Custom CSS overrides -->
+  <link rel="stylesheet" href="/css/style.css">
+  
+  <style type="text/tailwindcss">
+    @theme {
+      --color-hyrox-yellow: #c1f80a;
+      --color-hyrox-dark: #121212;
+      --color-hyrox-darker: #080808;
+      --color-hyrox-gray: #1e1e1e;
+      --color-hyrox-gray-light: #2d2d2d;
+    }
+  </style>
+</head>
+<body class="bg-hyrox-darker text-white min-h-screen flex flex-col no-select">
+
+  <!-- Header -->
+  <header class="bg-hyrox-dark border-b border-hyrox-gray px-4 py-3 flex items-center justify-between sticky top-0 z-50">
+    <div class="flex items-center gap-2">
+      <span class="w-3 h-3 bg-hyrox-yellow rounded-full animate-pulse shadow-[0_0_8px_#c1f80a]"></span>
+      <h1 class="font-extrabold text-xl tracking-tighter text-white">
+        HYROX<span class="text-hyrox-yellow">SIM</span>
+      </h1>
+    </div>
+    <div id="active-session-indicator" class="hidden text-xs bg-hyrox-yellow/10 border border-hyrox-yellow/30 text-hyrox-yellow px-2 py-0.5 rounded-full font-semibold animate-pulse">
+      TIMER ATTIVO
+    </div>
+    <div id="trial-badge" class="hidden text-[10px] bg-blue-950 border border-blue-700 text-blue-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+      PROVA <span id="trial-days-left">7</span>gg
+    </div>
+    <div id="pro-badge" class="hidden text-[10px] bg-hyrox-yellow text-black px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
+      ✦ PRO
+    </div>
+  </header>
+
+  <!-- Main Scrollable Area -->
+  <main class="flex-grow overflow-y-auto pb-24 px-4 pt-4 max-w-md mx-auto w-full">
+    
+    <!-- Tab 1: GENERATORE DI SIMULAZIONI -->
+    <section id="tab-sim" class="tab-content active space-y-6">
+      <div class="space-y-1">
+        <h2 class="text-2xl font-black tracking-tight text-white uppercase">Simulatore Gara</h2>
+        <p class="text-gray-400 text-sm">Configura la tua simulazione HYROX e carica i pesi ufficiali.</p>
+      </div>
+
+      <!-- Categoria Selector -->
+      <div class="bg-hyrox-dark p-4 rounded-2xl border border-hyrox-gray space-y-3">
+        <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">1. Seleziona Categoria</label>
+        <div class="grid grid-cols-2 gap-2" id="category-selector">
+          <button data-cat="single-men" class="cat-btn px-3 py-2.5 rounded-xl border text-sm font-semibold transition bg-hyrox-gray border-hyrox-gray text-white active:bg-hyrox-gray-light">
+            Single Men
+          </button>
+          <button data-cat="single-women" class="cat-btn px-3 py-2.5 rounded-xl border text-sm font-semibold transition bg-hyrox-gray border-hyrox-gray text-white active:bg-hyrox-gray-light">
+            Single Women
+          </button>
+          <button data-cat="pro-men" class="cat-btn px-3 py-2.5 rounded-xl border text-sm font-semibold transition bg-hyrox-gray border-hyrox-gray text-white active:bg-hyrox-gray-light">
+            Pro Men
+          </button>
+          <button data-cat="pro-women" class="cat-btn px-3 py-2.5 rounded-xl border text-sm font-semibold transition bg-hyrox-gray border-hyrox-gray text-white active:bg-hyrox-gray-light">
+            Pro Women
+          </button>
+          <button data-cat="doubles" class="cat-btn col-span-2 px-3 py-2.5 rounded-xl border text-sm font-semibold transition bg-hyrox-gray border-hyrox-gray text-white active:bg-hyrox-gray-light">
+            Doubles (Men/Mixed/Women)
+          </button>
+        </div>
+      </div>
+
+      <!-- Dynamic Weights Card -->
+      <div id="weights-info-card" class="bg-hyrox-dark/50 p-4 rounded-2xl border border-hyrox-gray/50 hidden">
+        <h3 class="text-xs font-bold text-hyrox-yellow uppercase tracking-wider mb-2">Specifiche Pesi Categoria</h3>
+        <div class="grid grid-cols-2 gap-y-2 gap-x-4 text-xs text-gray-300">
+          <div class="flex justify-between border-b border-hyrox-gray/30 pb-1">
+            <span>Sled Push (50m):</span>
+            <span class="font-bold text-white" id="w-sled-push">-</span>
+          </div>
+          <div class="flex justify-between border-b border-hyrox-gray/30 pb-1">
+            <span>Sled Pull (50m):</span>
+            <span class="font-bold text-white" id="w-sled-pull">-</span>
+          </div>
+          <div class="flex justify-between border-b border-hyrox-gray/30 pb-1">
+            <span>Farmers Carry (200m):</span>
+            <span class="font-bold text-white" id="w-farmers">-</span>
+          </div>
+          <div class="flex justify-between border-b border-hyrox-gray/30 pb-1">
+            <span>Sandbag Lunges (100m):</span>
+            <span class="font-bold text-white" id="w-lunges">-</span>
+          </div>
+          <div class="flex justify-between col-span-2 border-b border-hyrox-gray/30 pb-1">
+            <span>Wall Balls (75/100 reps):</span>
+            <span class="font-bold text-white" id="w-wall-balls">-</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tipo Gara Selector -->
+      <div class="bg-hyrox-dark p-4 rounded-2xl border border-hyrox-gray space-y-4">
+        <label class="text-xs font-bold text-gray-400 uppercase tracking-wider block">2. Tipo di Simulazione</label>
+        
+        <div class="flex gap-2">
+          <button id="btn-sim-full" class="flex-1 py-3 rounded-xl border text-sm font-semibold transition bg-hyrox-yellow text-black border-hyrox-yellow glow-yellow">
+            Gara Completa
+          </button>
+          <button id="btn-sim-custom" class="flex-1 py-3 rounded-xl border text-sm font-semibold transition bg-hyrox-gray border-hyrox-gray text-white">
+            Ridotta (MetCon)
+          </button>
+        </div>
+
+        <!-- Custom MetCon details (shown conditionally) -->
+        <div id="custom-sim-options" class="hidden space-y-3 pt-2 border-t border-hyrox-gray/40">
+          <label class="text-xs font-semibold text-gray-300">Seleziona stazioni da includere:</label>
+          <div id="stations-checkboxes" class="space-y-2 text-sm text-gray-300">
+            <!-- Dynamically populated checkboxes -->
+          </div>
+          <div class="pt-2">
+            <label class="text-xs font-semibold text-gray-300 block mb-1">Includi Corsa 1km prima di ogni stazione?</label>
+            <div class="flex gap-2">
+              <button id="btn-run-yes" class="flex-1 py-1.5 rounded-lg border text-xs font-bold transition bg-hyrox-yellow text-black border-hyrox-yellow">SÌ (1km Run)</button>
+              <button id="btn-run-no" class="flex-1 py-1.5 rounded-lg border text-xs font-bold transition bg-hyrox-gray border-hyrox-gray text-white">NO (Solo stazioni)</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Start Button -->
+      <button id="btn-start-simulation" class="w-full bg-hyrox-yellow hover:bg-yellow-400 text-black font-extrabold py-4 rounded-2xl transition duration-150 text-center uppercase tracking-wider glow-yellow shadow-lg flex items-center justify-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+          <path fill-rule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z" clip-rule="evenodd" />
+        </svg>
+        Avvia Simulazione nel Timer
+      </button>
+    </section>
+
+    <!-- Tab 2: CRONOMETRO E TIMER INTERATTIVO -->
+    <section id="tab-timer" class="tab-content space-y-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-2xl font-black tracking-tight text-white uppercase">Allenamento Attivo</h2>
+          <p id="timer-workout-name" class="text-xs text-gray-400 font-semibold tracking-wide uppercase mt-0.5">Nessun Allenamento Caricato</p>
+        </div>
+        <div id="timer-category-badge" class="text-xs bg-hyrox-yellow text-black px-2 py-0.5 rounded-md font-bold uppercase tracking-wider hidden">
+          SINGLE MEN
+        </div>
+      </div>
+
+      <!-- Status HUD Display -->
+      <div class="bg-hyrox-dark p-4 rounded-2xl border border-hyrox-gray flex flex-col items-center justify-center text-center space-y-1 py-6 relative overflow-hidden">
+        <!-- Background light glow -->
+        <div class="absolute inset-0 bg-radial-gradient from-hyrox-yellow/5 to-transparent pointer-events-none"></div>
+
+        <span id="hud-sub-label" class="text-xs font-bold text-gray-400 uppercase tracking-widest">PROSSIMA FRAZIONE</span>
+        <span id="hud-current-state" class="text-2xl font-black tracking-tight text-hyrox-yellow uppercase">PREPARATI</span>
+        <span id="hud-workout-specs" class="text-xs font-semibold text-gray-400 mt-0.5">-</span>
+      </div>
+
+      <!-- HUGE Timer Display -->
+      <div class="flex flex-col items-center justify-center py-6 bg-hyrox-darker rounded-3xl border border-hyrox-yellow/20 pulse-active relative">
+        <span id="timer-display" class="font-mono text-5xl sm:text-6xl font-black tracking-tighter text-white tabular-nums text-glow-yellow">
+          00:00:00<span class="text-2xl text-hyrox-yellow font-bold">.00</span>
+        </span>
+        <span id="timer-split-display" class="font-mono text-sm font-semibold text-gray-400 mt-1 tabular-nums">
+          Parziale: 00:00:00.00
+        </span>
+      </div>
+
+      <!-- GIANT INTERACTIVE BUTTON (Sweaty hands friendly) -->
+      <div class="pt-2">
+        <button id="btn-giant-split" class="w-full bg-hyrox-yellow text-black font-black text-2xl py-8 rounded-3xl transition duration-150 uppercase tracking-widest shadow-[0_8px_30px_rgb(193,248,10,0.3)] hover:brightness-110 active:scale-95 flex flex-col items-center justify-center gap-1 min-h-[140px]">
+          <span id="giant-btn-action" class="tracking-widest">AVVIA GARA</span>
+          <span id="giant-btn-sub" class="text-xs font-bold opacity-60 uppercase tracking-wide">Clicca per iniziare</span>
+        </button>
+      </div>
+
+      <!-- Laps / Splits Table -->
+      <div class="bg-hyrox-dark rounded-2xl border border-hyrox-gray overflow-hidden">
+        <div class="bg-hyrox-gray px-4 py-2 border-b border-hyrox-gray-light flex justify-between items-center">
+          <span class="text-xs font-bold uppercase tracking-wider text-gray-300">Split Parziali</span>
+          <span id="laps-counter" class="text-xs font-bold text-hyrox-yellow uppercase">0 / 0</span>
+        </div>
+        <div class="max-h-60 overflow-y-auto divide-y divide-hyrox-gray-light" id="splits-list">
+          <div class="p-4 text-center text-sm text-gray-500">I tempi parziali verranno visualizzati qui durante la simulazione.</div>
+        </div>
+      </div>
+
+      <!-- Controls Button bar -->
+      <div class="flex gap-3">
+        <button id="btn-timer-pause" class="flex-1 bg-hyrox-gray border border-hyrox-gray-light text-white font-bold py-3.5 rounded-xl transition flex items-center justify-center gap-2 text-sm disabled:opacity-50">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" />
+          </svg>
+          Sospendi
+        </button>
+        <button id="btn-timer-reset" class="flex-1 bg-red-950/40 border border-red-900/60 text-red-400 font-bold py-3.5 rounded-xl transition flex items-center justify-center gap-2 text-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+          </svg>
+          Annulla
+        </button>
+      </div>
+    </section>
+
+    <!-- Tab 3: STORICO E DIARIO -->
+    <section id="tab-history" class="tab-content space-y-6">
+      <div class="space-y-1">
+        <h2 class="text-2xl font-black tracking-tight text-white uppercase">Storico Allenamenti</h2>
+        <p class="text-gray-400 text-sm">Monitora i tuoi progressi e i tuoi record personali.</p>
+      </div>
+
+      <!-- Quick Stats -->
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-hyrox-dark p-4 rounded-xl border border-hyrox-gray flex flex-col">
+          <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Totale Sessioni</span>
+          <span id="stats-total-sessions" class="text-2xl font-black text-hyrox-yellow mt-1">0</span>
+        </div>
+        <div class="bg-hyrox-dark p-4 rounded-xl border border-hyrox-gray flex flex-col">
+          <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Tempo di Lavoro</span>
+          <span id="stats-total-time" class="text-2xl font-black text-white mt-1">0h 0m</span>
+        </div>
+      </div>
+
+      <!-- Personal Records (PR) Carousel/List -->
+      <div class="bg-hyrox-dark p-4 rounded-2xl border border-hyrox-gray space-y-3">
+        <h3 class="text-xs font-bold text-hyrox-yellow uppercase tracking-wider">Record Personali Stazioni (PR)</h3>
+        <div class="grid grid-cols-2 gap-2" id="pr-stats-list">
+          <!-- Dynamically populated PR items -->
+          <div class="col-span-2 text-center text-xs text-gray-500 py-4">Nessun dato registrato. Completa un allenamento per calcolare i PR.</div>
+        </div>
+      </div>
+
+      <!-- Completed Sessions Log -->
+      <div class="space-y-3">
+        <h3 class="text-sm font-bold text-white uppercase tracking-wider">Registro Allenamenti</h3>
+        <div class="space-y-3" id="history-logs-container">
+          <!-- Dynamically populated history entries -->
+          <div class="p-8 text-center text-sm text-gray-500 bg-hyrox-dark/30 rounded-2xl border border-hyrox-gray border-dashed">
+            Nessun allenamento salvato nel diario.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 4: WOD DEL GIORNO (Generatore) -->
+    <section id="tab-wod" class="tab-content space-y-6">
+      <div class="space-y-1">
+        <h2 class="text-2xl font-black tracking-tight text-white uppercase">WOD del Giorno</h2>
+        <p class="text-gray-400 text-sm">Genera un allenamento casuale mirato per migliorare motore e forza resistente.</p>
+      </div>
+
+      <!-- WOD Display Card -->
+      <div id="wod-card-container">
+        <!-- Initial placeholder card -->
+        <div class="bg-hyrox-dark p-6 rounded-2xl border border-hyrox-gray text-center py-10 space-y-4">
+          <div class="w-16 h-16 bg-hyrox-yellow/10 text-hyrox-yellow rounded-full flex items-center justify-center mx-auto border border-hyrox-yellow/20">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 21L14.907 18M18 9.814L21 9l-3 5.906M14.058 10.436L18 6.5M10.436 14.058L6.5 18M3.75 3.75l16.5 16.5" />
+            </svg>
+          </div>
+          <div class="space-y-2">
+            <h3 class="text-lg font-bold">Generatore Casuale</h3>
+            <p class="text-xs text-gray-400 max-w-xs mx-auto">Premi il tasto in basso per estrarre dal nostro database un WOD specifico per la preparazione HYROX.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Generate button -->
+      <button id="btn-generate-wod" class="w-full bg-hyrox-yellow hover:bg-yellow-400 text-black font-extrabold py-4 rounded-2xl transition duration-150 text-center uppercase tracking-wider glow-yellow shadow-lg flex items-center justify-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 00-3.7-3.7 48.656 48.656 0 00-7.324 0 4.006 4.006 0 00-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3l-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 003.7 3.7 48.656 48.656 0 007.324 0 4.006 4.006 0 003.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3l-3 3" />
+        </svg>
+        Genera WOD Casuale
+      </button>
+    </section>
+
+  </main>
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="bg-hyrox-dark border-t border-hyrox-gray fixed bottom-0 left-0 right-0 z-50 pb-safe">
+    <div class="max-w-md mx-auto grid grid-cols-4 h-16">
+      
+      <button data-tab="sim" class="nav-link flex flex-col items-center justify-center text-gray-400 active:text-white transition py-1 border-t-2 border-transparent">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 mb-0.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 5.25h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5" />
+        </svg>
+        <span class="text-[10px] font-bold uppercase tracking-wider">Simulatore</span>
+      </button>
+
+      <button data-tab="timer" class="nav-link flex flex-col items-center justify-center text-gray-400 active:text-white transition py-1 border-t-2 border-transparent relative">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 mb-0.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span class="text-[10px] font-bold uppercase tracking-wider">Timer</span>
+        <span id="nav-timer-dot" class="hidden w-2 h-2 bg-hyrox-yellow rounded-full absolute top-2 right-6 animate-ping"></span>
+      </button>
+
+      <button data-tab="history" class="nav-link flex flex-col items-center justify-center text-gray-400 active:text-white transition py-1 border-t-2 border-transparent">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 mb-0.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+        </svg>
+        <span class="text-[10px] font-bold uppercase tracking-wider">Diario</span>
+      </button>
+
+      <button data-tab="wod" class="nav-link flex flex-col items-center justify-center text-gray-400 active:text-white transition py-1 border-t-2 border-transparent">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 mb-0.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1A3.75 3.75 0 0012 18z" />
+        </svg>
+        <span class="text-[10px] font-bold uppercase tracking-wider">WOD</span>
+      </button>
+
+    </div>
+  </nav>
+
+  <!-- =========================================== -->
+  <!-- PAYWALL MODAL OVERLAY -->
+  <!-- =========================================== -->
+  <div id="paywall-modal" class="hidden fixed inset-0 z-[9999] bg-black/95 backdrop-blur-sm flex items-end justify-center pb-0">
+    <div class="w-full max-w-md bg-hyrox-dark rounded-t-3xl border border-hyrox-gray/60 shadow-2xl overflow-hidden">
+      
+      <!-- Drag handle -->
+      <div class="w-12 h-1 bg-hyrox-gray-light rounded-full mx-auto mt-3 mb-0"></div>
+      
+      <!-- Paywall content -->
+      <div class="px-6 pt-6 pb-10 space-y-6">
+        
+        <!-- Icon + Title -->
+        <div class="text-center space-y-3">
+          <div class="w-16 h-16 bg-hyrox-yellow rounded-2xl flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(193,248,10,0.4)]">
+            <span class="text-black font-black text-2xl">H</span>
+          </div>
+          <div>
+            <h2 class="text-2xl font-black text-white tracking-tight">HYROX COMPANION</h2>
+            <p class="text-xs font-bold text-hyrox-yellow uppercase tracking-wider mt-0.5">PRO — Accesso Completo</p>
+          </div>
+          <p class="text-sm text-gray-400 max-w-xs mx-auto leading-relaxed">
+            La tua prova gratuita è terminata. Abbonati per continuare ad usare il timer, i WOD e il diario.
+          </p>
+        </div>
+
+        <!-- Features list -->
+        <div class="bg-hyrox-gray/40 rounded-2xl border border-hyrox-gray/40 p-4 space-y-2">
+          <div class="flex items-center gap-3 text-sm">
+            <span class="text-hyrox-yellow text-base">⏱</span>
+            <span class="text-white font-semibold">Timer con split illimitati</span>
+          </div>
+          <div class="flex items-center gap-3 text-sm">
+            <span class="text-hyrox-yellow text-base">🎯</span>
+            <span class="text-white font-semibold">Simulatore gara completo</span>
+          </div>
+          <div class="flex items-center gap-3 text-sm">
+            <span class="text-hyrox-yellow text-base">🔥</span>
+            <span class="text-white font-semibold">WOD del giorno infiniti</span>
+          </div>
+          <div class="flex items-center gap-3 text-sm">
+            <span class="text-hyrox-yellow text-base">📊</span>
+            <span class="text-white font-semibold">Storico & Record Personali</span>
+          </div>
+        </div>
+
+        <!-- Pricing options -->
+        <div class="space-y-3" id="pricing-options">
+          
+          <!-- Quarterly (highlighted as best value) -->
+          <button onclick="selectPlan('quarterly')" id="plan-quarterly" class="w-full relative border-2 border-hyrox-yellow bg-hyrox-yellow/10 rounded-2xl p-4 text-left transition active:scale-[0.99]">
+            <div class="absolute -top-2.5 right-4 bg-hyrox-yellow text-black text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">MIGLIOR OFFERTA</div>
+            <div class="flex justify-between items-center">
+              <div>
+                <div class="font-black text-white text-base">Trimestrale</div>
+                <div class="text-xs text-gray-400 mt-0.5">6,99€ ogni 3 mesi · Solo <span class="text-hyrox-yellow font-bold">2,33€/mese</span></div>
+              </div>
+              <div class="text-right">
+                <div class="text-2xl font-black text-hyrox-yellow">6,99€</div>
+                <div class="text-[10px] text-gray-500 line-through">8,97€</div>
+              </div>
+            </div>
+          </button>
+
+          <!-- Monthly -->
+          <button onclick="selectPlan('monthly')" id="plan-monthly" class="w-full border border-hyrox-gray rounded-2xl p-4 text-left transition active:scale-[0.99]">
+            <div class="flex justify-between items-center">
+              <div>
+                <div class="font-black text-white text-base">Mensile</div>
+                <div class="text-xs text-gray-400 mt-0.5">Rinnovo automatico mensile</div>
+              </div>
+              <div class="text-right">
+                <div class="text-2xl font-black text-white">2,99€</div>
+                <div class="text-[10px] text-gray-500">al mese</div>
+              </div>
+            </div>
+          </button>
+        </div>
+
+        <!-- Payment buttons -->
+        <div class="space-y-3" id="payment-buttons">
+          <!-- Stripe -->
+          <button id="btn-pay-stripe" onclick="payWithStripe()" class="w-full bg-white text-black font-black py-4 rounded-2xl flex items-center justify-center gap-3 text-sm uppercase tracking-widest transition active:scale-[0.98] shadow-sm">
+            <svg class="w-5 h-5" viewBox="0 0 60 25" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill="#635BFF" d="M59.64 14.28h-8.06c.19 1.93 1.6 2.55 3.2 2.55 1.64 0 2.96-.37 4.05-.95v3.32a8.33 8.33 0 01-4.56 1.1c-4.01 0-6.83-2.5-6.83-7.48 0-4.19 2.39-7.52 6.3-7.52 3.92 0 5.96 3.28 5.96 7.5 0 .4-.04 1.26-.06 1.48zm-5.92-5.62c-1.03 0-2.17.73-2.17 2.58h4.25c0-1.85-1.07-2.58-2.08-2.58z"/><path fill="#635BFF" d="M44.96 18.75c-1.08 0-1.79-.46-2.23-1.17l-.09 1.01H38.6V0l4.26-.89v6.09a4.32 4.32 0 012.6-.78c2.56 0 5.16 2.14 5.16 7.17-.02 5.09-2.68 7.16-5.66 7.16zm-.98-10.96c-.86 0-1.37.3-1.72.76l.02 5.89c.33.43.83.72 1.7.72 1.31 0 2.21-1.46 2.21-3.68 0-2.18-.91-3.69-2.21-3.69z"/><path fill="#635BFF" d="M31.54 6.7l-.27-1.11h-3.9v12.81h4.25V11.8c1-1.3 2.7-1.06 3.22-.89V6.59c-.56-.19-2.61-.51-3.3.11z"/><path fill="#635BFF" d="M23.98 4.24L19.72 5.1V1.5l4.26-.87v3.61zm0 1.35H19.72v12.81h4.26V5.59z"/><path fill="#635BFF" d="M17.28 13.02c0 1.05.86 1.46 2.21 1.46.89 0 1.75-.14 2.61-.47v3.28c-.89.42-2.08.69-3.51.69-3.83 0-6.03-1.94-6.03-5.5V8.7H10.4V5.59h2.16V2.25l4.72-.96V5.6h3.3v3.11h-3.3v4.31z"/><path fill="#635BFF" d="M5.63 9.6c0-1.65 1.38-2.3 3.58-2.3.77 0 1.54.08 2.3.27V4.01a14.84 14.84 0 00-3.6-.48C3.64 3.53 1 5.47 1 9.72c0 6.53 8.3 5.47 8.3 8.29 0 1.95-1.7 2.57-3.78 2.57-1.3 0-2.77-.31-3.96-.8v3.53a12.2 12.2 0 003.85.63c4.22 0 7.09-1.86 7.09-6.19 0-6.96-8.17-5.76-8.17-8.15z"/></svg>
+            Paga con Carta (Stripe)
+          </button>
+
+          <!-- PayPal -->
+          <button id="btn-pay-paypal" onclick="payWithPayPal()" class="w-full bg-[#0070BA] text-white font-black py-4 rounded-2xl flex items-center justify-center gap-3 text-sm uppercase tracking-widest transition active:scale-[0.98]">
+            <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M7.076 21.337H2.47a.641.641 0 01-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 00-.607-.541c-.013.076-.026.175-.041.254-.93 4.778-4.005 7.201-9.138 7.201h-2.19a.563.563 0 00-.556.479l-1.187 7.527h-.506l-.24 1.516a.56.56 0 00.554.647h3.882c.46 0 .85-.334.922-.788.06-.26.76-4.852.816-5.09a.932.932 0 01.923-.788h.58c3.76 0 6.705-1.528 7.565-5.946.36-1.847.174-3.388-.777-4.471z"/></svg>
+            Paga con PayPal
+          </button>
+        </div>
+
+        <p class="text-center text-[10px] text-gray-600">Pagamento sicuro. Annulla in qualsiasi momento.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================== -->
+  <!-- TRIAL EXPIRED FULL SCREEN NOTICE -->
+  <!-- =========================================== -->
+  <div id="trial-banner" class="hidden fixed top-0 left-0 right-0 z-[9998] bg-hyrox-yellow text-black text-xs font-bold text-center py-1.5 px-4">
+    ⚡ PROVA GRATUITA SCADUTA — Sblocca HYROX PRO per continuare
+    <button onclick="showPaywall()" class="ml-2 underline font-black">Abbonati ora</button>
+  </div>
+
+  <!-- Audio elements -->
+  <audio id="sound-start" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==A"></audio>
+  
+  <!-- Main Scripts -->
+  <script type="module" src="/js/app.js"></script>
+
+</body>
+</html>
