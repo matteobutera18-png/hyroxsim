@@ -6,10 +6,13 @@ const qrcode = require('qrcode-terminal');
 const QRCode = require('qrcode');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const TRIAL_DAYS = 7;
+const JWT_SECRET = process.env.JWT_SECRET || 'hyrox-super-secret-key';
 
 // ============================================================
 // SECURITY MIDDLEWARE
@@ -108,72 +111,112 @@ function getUserStatus(userId) {
   }
 }
 
-// Middleware to check user access (trial or pro)
+// Middleware to check user access via JWT
 function requireAccess(req, res, next) {
-  const userId = req.headers['x-user-id'];
-  if (!userId) {
-    return res.status(401).json({ error: 'ID utente mancante.' });
+  const authHeader = req.headers['authorization'];
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Token mancante o invalido.' });
   }
-  const statusInfo = getUserStatus(userId);
-  if (!statusInfo) {
-    return res.status(401).json({ error: 'Utente non registrato.' });
+  const token = authHeader.split(' ')[1];
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const userId = decoded.userId;
+    const statusInfo = getUserStatus(userId);
+    if (!statusInfo) {
+      return res.status(401).json({ error: 'Utente non trovato.' });
+    }
+    if (statusInfo.status === 'expired') {
+      return res.status(403).json({ error: 'Prova gratuita scaduta. Abbonati per continuare.', code: 'TRIAL_EXPIRED' });
+    }
+    req.userId = userId;
+    req.userStatus = statusInfo;
+    next();
+  } catch (err) {
+    return res.status(401).json({ error: 'Token non valido o scaduto.' });
   }
-  if (statusInfo.status === 'expired') {
-    return res.status(403).json({ error: 'Prova gratuita scaduta. Abbonati per continuare.', code: 'TRIAL_EXPIRED' });
-  }
-  req.userStatus = statusInfo;
-  next();
 }
 
 // ============================================================
-// USER MANAGEMENT ROUTES
+// USER MANAGEMENT & AUTH ROUTES
 // ============================================================
 
-// Register a new user (or return existing status)
-app.post('/api/user/register', (req, res) => {
-  const { userId } = req.body;
-  if (!userId || typeof userId !== 'string' || userId.length < 10) {
-    return res.status(400).json({ error: 'ID utente non valido.' });
+// Register a new user
+app.post('/api/auth/register', async (req, res) => {
+  const { email, phone, password, name, age } = req.body;
+  if (!email || !password || !phone) {
+    return res.status(400).json({ error: 'Email, Telefono e Password obbligatori.' });
   }
 
   const users = readJsonFile(USERS_FILE, []);
-  let user = users.find(u => u.id === userId);
-
-  if (!user) {
-    user = {
-      id: userId,
-      createdAt: new Date().toISOString(),
-      isPro: false,
-      subscription: null
-    };
-    users.push(user);
-    writeJsonFile(USERS_FILE, users);
+  if (users.find(u => u.email === email || u.phone === phone)) {
+    return res.status(400).json({ error: 'Email o Telefono già registrati.' });
   }
 
-  const statusInfo = getUserStatus(userId);
-  res.json({
-    status: statusInfo.status,
-    daysLeft: statusInfo.daysLeft || 0,
-    isPro: user.isPro,
-    createdAt: user.createdAt
-  });
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(password, salt);
+  const userId = require('crypto').randomUUID();
+
+  const user = {
+    id: userId,
+    email,
+    phone,
+    password: hashedPassword,
+    name: name || '',
+    age: age || 25,
+    createdAt: new Date().toISOString(),
+    isPro: false,
+    subscription: null,
+    history: []
+  };
+  users.push(user);
+  writeJsonFile(USERS_FILE, users);
+
+  const token = jwt.sign({ userId }, JWT_SECRET, { expiresIn: '30d' });
+  res.json({ token, user: { id: userId, email, name, age } });
+});
+
+// Login
+app.post('/api/auth/login', async (req, res) => {
+  const { email, password } = req.body;
+  const users = readJsonFile(USERS_FILE, []);
+  const user = users.find(u => u.email === email);
+
+  if (!user || !(await bcrypt.compare(password, user.password))) {
+    return res.status(401).json({ error: 'Credenziali non valide.' });
+  }
+
+  const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '30d' });
+  res.json({ token, user: { id: user.id, email: user.email, name: user.name, age: user.age } });
+});
+
+// Update Settings
+app.post('/api/user/settings', requireAccess, (req, res) => {
+  const { name, age } = req.body;
+  const users = readJsonFile(USERS_FILE, []);
+  const userIndex = users.findIndex(u => u.id === req.userId);
+  
+  if (userIndex === -1) return res.status(404).json({ error: 'Utente non trovato.' });
+  
+  users[userIndex].name = name || users[userIndex].name;
+  users[userIndex].age = age || users[userIndex].age;
+  writeJsonFile(USERS_FILE, users);
+  
+  res.json({ success: true, user: { name: users[userIndex].name, age: users[userIndex].age } });
 });
 
 // Get user status
-app.get('/api/user/status', (req, res) => {
-  const userId = req.headers['x-user-id'];
-  if (!userId) return res.status(401).json({ error: 'ID utente mancante.' });
-
-  const statusInfo = getUserStatus(userId);
-  if (!statusInfo) {
-    return res.status(404).json({ error: 'Utente non trovato.' });
-  }
-
+app.get('/api/user/status', requireAccess, (req, res) => {
+  const statusInfo = req.userStatus;
   res.json({
     status: statusInfo.status,
     daysLeft: statusInfo.daysLeft || 0,
     isPro: statusInfo.user.isPro,
-    subscription: statusInfo.user.subscription
+    subscription: statusInfo.user.subscription,
+    profile: {
+      name: statusInfo.user.name || '',
+      age: statusInfo.user.age || 25,
+      email: statusInfo.user.email || ''
+    }
   });
 });
 
@@ -184,7 +227,7 @@ app.get('/api/user/status', (req, res) => {
 // Create Stripe Checkout Session
 app.post('/api/payment/create-stripe-session', paymentLimiter, requireAccess, async (req, res) => {
   const { plan } = req.body; // 'monthly' | 'quarterly'
-  const userId = req.headers['x-user-id'];
+  const userId = req.userId;
 
   // Stripe is initialized only if key is configured
   const stripeKey = process.env.STRIPE_SECRET_KEY;
@@ -306,13 +349,14 @@ app.post('/api/payment/paypal-create', paymentLimiter, requireAccess, (req, res)
     amount: selectedPlan.amount,
     currency: 'EUR',
     description: `HYROX Companion PRO - ${selectedPlan.label}`,
-    userId: req.headers['x-user-id']
+    userId: req.userId
   });
 });
 
-// PayPal capture order (called after frontend PayPal button confirms)
-app.post('/api/payment/paypal-capture', paymentLimiter, (req, res) => {
-  const { orderId, userId } = req.body;
+// Capture PayPal Order
+app.post('/api/payment/paypal-capture', paymentLimiter, requireAccess, async (req, res) => {
+  const { orderID } = req.body;
+  const userId = req.userId;
   const paypalClientId = process.env.PAYPAL_CLIENT_ID;
   const paypalClientSecret = process.env.PAYPAL_CLIENT_SECRET;
 
@@ -320,7 +364,7 @@ app.post('/api/payment/paypal-capture', paymentLimiter, (req, res) => {
     return res.status(503).json({ error: 'PayPal non configurato.' });
   }
 
-  if (!orderId || !userId) {
+  if (!orderID || !userId) {
     return res.status(400).json({ error: 'Dati ordine mancanti.' });
   }
 
@@ -331,7 +375,7 @@ app.post('/api/payment/paypal-capture', paymentLimiter, (req, res) => {
     users[userIndex].isPro = true;
     users[userIndex].subscription = {
       provider: 'paypal',
-      orderId,
+      orderId: orderID,
       plan: req.body.plan || 'monthly',
       activatedAt: new Date().toISOString()
     };
@@ -352,9 +396,14 @@ app.get('/api/workouts', (req, res) => {
   res.json(workouts);
 });
 
+// ============================================================
+// HISTORY ROUTES
+// ============================================================
+
 app.get('/api/history', requireAccess, (req, res) => {
   const history = readJsonFile(HISTORY_FILE, []);
-  res.json(history);
+  const userHistory = history.filter(h => h.userId === req.userId);
+  res.json(userHistory);
 });
 
 app.post('/api/history', requireAccess, (req, res) => {
@@ -363,8 +412,9 @@ app.post('/api/history', requireAccess, (req, res) => {
     return res.status(400).json({ error: 'Dati sessione incompleti.' });
   }
 
-  newSession.id = newSession.id || `session-${Date.now()}`;
-  newSession.date = newSession.date || new Date().toISOString();
+  newSession.id = require('crypto').randomUUID();
+  newSession.date = new Date().toISOString();
+  newSession.userId = req.userId;
 
   const history = readJsonFile(HISTORY_FILE, []);
   history.push(newSession);
@@ -378,9 +428,10 @@ app.post('/api/history', requireAccess, (req, res) => {
 
 app.get('/api/prs', requireAccess, (req, res) => {
   const history = readJsonFile(HISTORY_FILE, []);
+  const userHistory = history.filter(h => h.userId === req.userId);
   const prs = {};
 
-  history.forEach(session => {
+  userHistory.forEach(session => {
     if (!session.splits || !Array.isArray(session.splits)) return;
     session.splits.forEach(split => {
       const key = split.name;

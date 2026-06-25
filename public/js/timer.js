@@ -425,6 +425,8 @@ function handleGiantSplitClick() {
     timerState.isRunning = true;
     timerState.currentStepIndex = 0;
     
+    if (window.CardioAPI) window.CardioAPI.startRecording();
+    
     const now = performance.now();
     timerState.startTime = now;
     timerState.currentSplitStartTime = now;
@@ -683,11 +685,21 @@ function saveWorkoutSession() {
     date: new Date().toISOString()
   };
   
+  if (window.CardioAPI) {
+    const stats = window.CardioAPI.stopRecordingAndGetStats();
+    if (stats.avgBpm > 0) {
+      session.avgBpm = stats.avgBpm;
+      session.maxBpm = stats.maxBpm;
+    }
+  }
+  
+  const token = localStorage.getItem('hyrox_token');
+  
   fetch('/api/history', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-user-id': currentUserId || ''
+      'Authorization': `Bearer ${token}`
     },
     body: JSON.stringify(session)
   })

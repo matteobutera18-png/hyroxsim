@@ -9,8 +9,9 @@ export function initHistory() {
 }
 
 export function fetchHistoryAndPRs() {
-  const userId = getUserId();
-  const headers = { 'x-user-id': userId };
+  const token = localStorage.getItem('hyrox_token');
+  if (!token) return;
+  const headers = { 'Authorization': `Bearer ${token}` };
 
   Promise.all([
     fetch('/api/history', { headers }).then(res => {
@@ -161,6 +162,7 @@ function renderHistoryLogs(history) {
               ${categoryName}
             </span>
             <span class="text-xs text-gray-500 font-semibold">${dateFormatted}</span>
+            ${session.avgBpm ? `<span class="text-[10px] font-bold text-red-400">❤ ${session.avgBpm} BPM (Max: ${session.maxBpm})</span>` : ''}
           </div>
           <h4 class="text-sm font-black text-white uppercase tracking-tight">${session.workoutName}</h4>
         </div>

@@ -157,6 +157,19 @@
         </div>
       </div>
 
+      <!-- Bluetooth Cardio Tracker Display -->
+      <div id="cardio-container" class="bg-hyrox-dark p-3 rounded-xl border border-hyrox-gray flex items-center justify-between mt-2 mb-4">
+        <button id="btn-connect-cardio" class="flex items-center gap-2 text-xs font-bold text-[#60a5fa] px-3 py-1.5 rounded-lg border border-[#3b82f6]/50 bg-[#1e40af]/30 hover:bg-[#1e40af]/50 transition active:scale-95">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>
+          Cardio BLE
+        </button>
+        <div id="cardio-live-display" class="hidden flex items-center gap-2 text-hyrox-yellow">
+          <svg class="w-5 h-5 animate-pulse" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+          <span id="bpm-value" class="font-black text-xl tabular-nums">--</span> <span class="text-[10px] font-bold">BPM</span>
+          <div id="bpm-zone" class="ml-2 text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded bg-gray-800 text-gray-400">Ricerca</div>
+        </div>
+      </div>
+
       <!-- Status HUD Display -->
       <div class="bg-hyrox-dark p-4 rounded-2xl border border-hyrox-gray flex flex-col items-center justify-center text-center space-y-1 py-6 relative overflow-hidden">
         <!-- Background light glow -->
@@ -285,11 +298,33 @@
       </button>
     </section>
 
+    <!-- Tab 5: IMPOSTAZIONI -->
+    <section id="tab-settings" class="tab-content space-y-6 hidden">
+      <div class="space-y-1">
+        <h2 class="text-2xl font-black tracking-tight text-white uppercase">Impostazioni</h2>
+        <p class="text-gray-400 text-sm">Gestisci il tuo profilo e configura l'età per le zone cardio.</p>
+      </div>
+      <div class="bg-hyrox-dark p-4 rounded-2xl border border-hyrox-gray space-y-4">
+        <div>
+          <label class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">Nome Completo</label>
+          <input type="text" id="settings-name" class="w-full bg-hyrox-gray/50 border border-hyrox-gray-light rounded-xl px-3 py-2 text-white outline-none focus:border-hyrox-yellow transition" placeholder="Tuo Nome">
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">Età (Anni)</label>
+          <input type="number" id="settings-age" class="w-full bg-hyrox-gray/50 border border-hyrox-gray-light rounded-xl px-3 py-2 text-white outline-none focus:border-hyrox-yellow transition" placeholder="Es. 30" min="16" max="99">
+          <p class="text-[10px] text-gray-500 mt-1">L'età viene usata per calcolare automaticamente la tua Frequenza Cardiaca Massima durante il tracker.</p>
+        </div>
+        <button id="btn-save-settings" class="w-full bg-hyrox-yellow text-black font-bold py-3 rounded-xl transition hover:brightness-110 active:scale-95 uppercase tracking-wider text-sm mt-2">Salva Profilo</button>
+      </div>
+      
+      <button id="btn-logout" class="w-full bg-red-950/40 border border-red-900/60 text-red-400 font-bold py-3 rounded-xl transition hover:bg-red-900/50 active:scale-95 uppercase tracking-wider text-sm">Esci dall'Account</button>
+    </section>
+
   </main>
 
   <!-- Bottom Navigation Bar -->
   <nav class="bg-hyrox-dark border-t border-hyrox-gray fixed bottom-0 left-0 right-0 z-50 pb-safe">
-    <div class="max-w-md mx-auto grid grid-cols-4 h-16">
+    <div class="max-w-md mx-auto grid grid-cols-5 h-16">
       
       <button data-tab="sim" class="nav-link flex flex-col items-center justify-center text-gray-400 active:text-white transition py-1 border-t-2 border-transparent">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 mb-0.5">
@@ -319,6 +354,14 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1A3.75 3.75 0 0012 18z" />
         </svg>
         <span class="text-[10px] font-bold uppercase tracking-wider">WOD</span>
+      </button>
+
+      <button data-tab="settings" class="nav-link flex flex-col items-center justify-center text-gray-400 active:text-white transition py-1 border-t-2 border-transparent relative">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 mb-0.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 011.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 01-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 01-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.107-1.204l-.527-.738a1.125 1.125 0 01.12-1.45l.773-.773a1.125 1.125 0 011.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        <span class="text-[10px] font-bold uppercase tracking-wider">Profilo</span>
       </button>
 
     </div>
@@ -424,6 +467,44 @@
   </div>
 
   <!-- =========================================== -->
+  <!-- FULLSCREEN AUTHENTICATION MODAL -->
+  <!-- =========================================== -->
+  <div id="auth-modal" class="fixed inset-0 z-[99999] bg-hyrox-darker flex flex-col justify-center px-6 transition-opacity duration-300">
+    <div class="max-w-sm w-full mx-auto space-y-8">
+      <div class="text-center">
+        <div class="w-16 h-16 bg-hyrox-yellow text-black font-black flex items-center justify-center text-3xl rounded-2xl mx-auto mb-4">H</div>
+        <h1 class="text-3xl font-black text-white uppercase tracking-tighter">HYROX<span class="text-hyrox-yellow">SIM</span></h1>
+        <p class="text-gray-400 text-sm mt-1">Accedi per sbloccare l'app</p>
+      </div>
+      
+      <!-- Login Form -->
+      <form id="auth-form" class="space-y-4">
+        <div>
+          <label class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">E-mail</label>
+          <input type="email" id="auth-email" required class="w-full bg-hyrox-gray/50 border border-hyrox-gray-light rounded-xl px-4 py-3 text-white outline-none focus:border-hyrox-yellow transition" placeholder="es. atleta@hyrox.com">
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">Password</label>
+          <input type="password" id="auth-password" required class="w-full bg-hyrox-gray/50 border border-hyrox-gray-light rounded-xl px-4 py-3 text-white outline-none focus:border-hyrox-yellow transition" placeholder="••••••••">
+        </div>
+        <div id="auth-phone-group" class="hidden">
+          <label class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">Telefono (Solo Registrazione)</label>
+          <input type="tel" id="auth-phone" class="w-full bg-hyrox-gray/50 border border-hyrox-gray-light rounded-xl px-4 py-3 text-white outline-none focus:border-hyrox-yellow transition" placeholder="es. +39 333 1234567">
+        </div>
+        
+        <p id="auth-error" class="text-red-400 text-xs font-bold text-center hidden">Errore</p>
+        
+        <button type="submit" id="btn-auth-submit" class="w-full bg-hyrox-yellow text-black font-black py-4 rounded-xl transition hover:brightness-110 active:scale-95 uppercase tracking-widest text-sm shadow-md mt-4">Accedi</button>
+      </form>
+      
+      <div class="text-center text-sm text-gray-500">
+        <span id="auth-toggle-text">Non hai un account?</span> 
+        <button type="button" id="btn-auth-toggle" class="text-hyrox-yellow font-bold underline outline-none">Registrati</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================== -->
   <!-- TRIAL EXPIRED FULL SCREEN NOTICE -->
   <!-- =========================================== -->
   <div id="trial-banner" class="hidden fixed top-0 left-0 right-0 z-[9998] bg-hyrox-yellow text-black text-xs font-bold text-center py-1.5 px-4">
@@ -435,6 +516,9 @@
   <audio id="sound-start" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==A"></audio>
   
   <!-- Main Scripts -->
+  <script type="module" src="/js/auth.js"></script>
+  <script type="module" src="/js/settings.js"></script>
+  <script type="module" src="/js/cardio.js"></script>
   <script type="module" src="/js/app.js"></script>
 
 </body>

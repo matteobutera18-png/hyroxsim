@@ -36,31 +36,30 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ============================================================
 // USER MANAGEMENT
 // ============================================================
-function getOrCreateUserId() {
-  let id = localStorage.getItem('hyrox_user_id');
-  if (!id) {
-    // Generate a UUID-like ID without importing a module
-    id = 'usr-' + crypto.randomUUID();
-    localStorage.setItem('hyrox_user_id', id);
-  }
-  return id;
-}
 
 async function initUser() {
-  currentUserId = getOrCreateUserId();
+  const token = localStorage.getItem('hyrox_token');
+  currentUserId = localStorage.getItem('hyrox_user_id');
+
+  if (!token) {
+    // If no token, wait for auth.js to handle login modal
+    return;
+  }
 
   try {
-    const res = await fetch('/api/user/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: currentUserId })
+    const res = await fetch('/api/user/status', {
+      headers: { 'Authorization': `Bearer ${token}` }
     });
-    const data = await res.json();
-    currentUserStatus = data.status;
-    applyUserStatus(data);
+    
+    if (res.ok) {
+      const data = await res.json();
+      currentUserStatus = data.status;
+      applyUserStatus(data);
+    } else {
+      throw new Error('Token non valido');
+    }
   } catch (err) {
     console.warn('Server non raggiungibile, utilizzo stato offline:', err.message);
-    // Fallback: use localStorage cached status
     const cached = localStorage.getItem('hyrox_status');
     if (cached) {
       const data = JSON.parse(cached);
@@ -110,10 +109,13 @@ function applyUserStatus(data) {
 }
 
 async function handlePaymentSuccess() {
+  const token = localStorage.getItem('hyrox_token');
+  if (!token) return;
+
   try {
     // Re-fetch updated status from backend
     const res = await fetch('/api/user/status', {
-      headers: { 'x-user-id': getOrCreateUserId() }
+      headers: { 'Authorization': `Bearer ${token}` }
     });
     if (res.ok) {
       const data = await res.json();
@@ -164,13 +166,15 @@ async function payWithStripe() {
   const btn = document.getElementById('btn-pay-stripe');
   btn.textContent = 'Apertura pagamento...';
   btn.disabled = true;
+  
+  const token = localStorage.getItem('hyrox_token');
 
   try {
     const res = await fetch('/api/payment/create-stripe-session', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-user-id': currentUserId
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({ plan: selectedPaymentPlan })
     });
@@ -201,13 +205,15 @@ async function payWithPayPal() {
   const btn = document.getElementById('btn-pay-paypal');
   btn.textContent = 'Connessione PayPal...';
   btn.disabled = true;
+  
+  const token = localStorage.getItem('hyrox_token');
 
   try {
     const res = await fetch('/api/payment/paypal-create', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-user-id': currentUserId
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({ plan: selectedPaymentPlan })
     });
