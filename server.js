@@ -142,19 +142,24 @@ function requireAccess(req, res, next) {
 
 // Register a new user
 app.post('/api/auth/register', async (req, res) => {
-  const { email, phone, password, name, age } = req.body;
+  const { email, phone, password, name, age, oldUserId } = req.body;
   if (!email || !password || !phone) {
     return res.status(400).json({ error: 'Email, Telefono e Password obbligatori.' });
   }
 
   const users = readJsonFile(USERS_FILE, []);
   if (users.find(u => u.email === email || u.phone === phone)) {
-    return res.status(400).json({ error: 'Email o Telefono già registrati.' });
+    return res.status(400).json({ error: 'Questa e-mail o telefono è già registrato. Vai su Accedi.' });
   }
 
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
-  const userId = require('crypto').randomUUID();
+  
+  // Re-use anonymous session ID to preserve old WODs, otherwise generate new
+  let userId = require('crypto').randomUUID();
+  if (oldUserId && oldUserId.startsWith('usr-') && !users.find(u => u.id === oldUserId)) {
+    userId = oldUserId;
+  }
 
   const user = {
     id: userId,
@@ -181,8 +186,12 @@ app.post('/api/auth/login', async (req, res) => {
   const users = readJsonFile(USERS_FILE, []);
   const user = users.find(u => u.email === email);
 
-  if (!user || !(await bcrypt.compare(password, user.password))) {
-    return res.status(401).json({ error: 'Credenziali non valide.' });
+  if (!user) {
+    return res.status(401).json({ error: 'Nessun account trovato con questa E-mail. Registrati.' });
+  }
+  
+  if (!(await bcrypt.compare(password, user.password))) {
+    return res.status(401).json({ error: 'Password errata.' });
   }
 
   const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '30d' });

@@ -478,23 +478,39 @@
       </div>
       
       <!-- Login Form -->
-      <form id="auth-form" class="space-y-4">
+      <form id="login-form" class="space-y-4">
         <div>
           <label class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">E-mail</label>
-          <input type="email" id="auth-email" required class="w-full bg-hyrox-gray/50 border border-hyrox-gray-light rounded-xl px-4 py-3 text-white outline-none focus:border-hyrox-yellow transition" placeholder="es. atleta@hyrox.com">
+          <input type="email" id="login-email" required class="w-full bg-hyrox-gray/50 border border-hyrox-gray-light rounded-xl px-4 py-3 text-white outline-none focus:border-hyrox-yellow transition" placeholder="es. atleta@hyrox.com">
         </div>
         <div>
           <label class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">Password</label>
-          <input type="password" id="auth-password" required class="w-full bg-hyrox-gray/50 border border-hyrox-gray-light rounded-xl px-4 py-3 text-white outline-none focus:border-hyrox-yellow transition" placeholder="••••••••">
-        </div>
-        <div id="auth-phone-group" class="hidden">
-          <label class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">Telefono (Solo Registrazione)</label>
-          <input type="tel" id="auth-phone" class="w-full bg-hyrox-gray/50 border border-hyrox-gray-light rounded-xl px-4 py-3 text-white outline-none focus:border-hyrox-yellow transition" placeholder="es. +39 333 1234567">
+          <input type="password" id="login-password" required class="w-full bg-hyrox-gray/50 border border-hyrox-gray-light rounded-xl px-4 py-3 text-white outline-none focus:border-hyrox-yellow transition" placeholder="••••••••">
         </div>
         
-        <p id="auth-error" class="text-red-400 text-xs font-bold text-center hidden">Errore</p>
+        <p id="login-error" class="text-red-400 text-xs font-bold text-center hidden">Errore</p>
         
-        <button type="submit" id="btn-auth-submit" class="w-full bg-hyrox-yellow text-black font-black py-4 rounded-xl transition hover:brightness-110 active:scale-95 uppercase tracking-widest text-sm shadow-md mt-4">Accedi</button>
+        <button type="submit" id="btn-login-submit" class="w-full bg-hyrox-yellow text-black font-black py-4 rounded-xl transition hover:brightness-110 active:scale-95 uppercase tracking-widest text-sm shadow-md mt-4">Accedi</button>
+      </form>
+
+      <!-- Register Form -->
+      <form id="register-form" class="space-y-4 hidden">
+        <div>
+          <label class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">E-mail</label>
+          <input type="email" id="register-email" required class="w-full bg-hyrox-gray/50 border border-hyrox-gray-light rounded-xl px-4 py-3 text-white outline-none focus:border-hyrox-yellow transition" placeholder="es. atleta@hyrox.com">
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">Password</label>
+          <input type="password" id="register-password" required class="w-full bg-hyrox-gray/50 border border-hyrox-gray-light rounded-xl px-4 py-3 text-white outline-none focus:border-hyrox-yellow transition" placeholder="••••••••">
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">Telefono</label>
+          <input type="tel" id="register-phone" required class="w-full bg-hyrox-gray/50 border border-hyrox-gray-light rounded-xl px-4 py-3 text-white outline-none focus:border-hyrox-yellow transition" placeholder="es. +39 333 1234567">
+        </div>
+        
+        <p id="register-error" class="text-red-400 text-xs font-bold text-center hidden">Errore</p>
+        
+        <button type="submit" id="btn-register-submit" class="w-full bg-blue-500 text-white font-black py-4 rounded-xl transition hover:bg-blue-400 active:scale-95 uppercase tracking-widest text-sm shadow-md mt-4">Crea Account</button>
       </form>
       
       <div class="text-center text-sm text-gray-500">
